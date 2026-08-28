@@ -1,8 +1,7 @@
-# skillotchi — practice creature (browser MVP)
+# skillotchi - practice creature (browser MVP)
 
-Tamagotchi-style creature that lives on real instrument practice, detected via
-microphone pitch tracking. Browser prototype of a future CYD (ESP32 + 320x240
-display + mic + one button) device. Vanilla JS + Canvas + Web Audio, no build step.
+Tamagotchi style creature that lives on real instrument practice, detected via
+microphone pitch tracking. Browser prototype of a future CYD. 
 
 ## Run
 
@@ -11,14 +10,12 @@ cd src
 python3 -m http.server 8137
 ```
 
-Open http://localhost:8137 — the mic requires localhost or https (`file://` won't
-work, and to share it with others just drop `src/` on any https static host).
+Open http://localhost:8137
 
-1. Click **start practice** (or press space) and allow the microphone when Chrome asks.
-2. Play — the creature perks up on confident pitch, squints happily while you
-   sustain, glances up on high notes, and shows a waveform while it hears you.
+1. Click **start practice** (or press space) and allow the microphone.
+2. Play music
 3. Click **end practice**: sustained playing time is credited to today's
-   practice (celebration bounce).
+   practice.
 
 The life system (persists in localStorage, keeps running while the page is closed):
 
@@ -53,6 +50,3 @@ src/
   main.js           wiring, rAF loop, debug panel (debug panel dies at CYD port time)
   index.html
 ```
-
-Tuning knobs are named constants at the top of each file (thresholds, decay
-rate, blink timing, mood baselines).
