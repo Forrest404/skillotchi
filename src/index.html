@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Practice Creature</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #101012; }
+    body {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; font-family: ui-monospace, Menlo, monospace;
+    }
+
+    #creature-canvas {
+      display: block;
+      /* fit width AND height (4:3), leaving room for the controls row */
+      width: min(92vw, 960px, calc((100vh - 130px) * 4 / 3)); height: auto;
+      background: #000; border-radius: 10px;
+    }
+
+    #controls {
+      display: flex; align-items: center; gap: 18px;
+      width: min(92vw, 960px, calc((100vh - 130px) * 4 / 3));
+    }
+    #practice-button {
+      font: inherit; font-size: 14px; color: #cfcfd4;
+      background: #1d1d1f; border: 1px solid #3a3a3c; border-radius: 999px;
+      padding: 10px 22px; cursor: pointer; white-space: nowrap;
+      transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    #practice-button:hover { border-color: #55575c; }
+    #restart-button {
+      font: inherit; font-size: 14px; color: #cfcfd4;
+      background: #1d1d1f; border: 1px solid #3a3a3c; border-radius: 999px;
+      padding: 10px 22px; cursor: pointer; white-space: nowrap;
+    }
+    #restart-button:hover { border-color: #55575c; }
+    #practice-button.active {
+      color: #7cc4ee; border-color: #3d7fa6;
+      box-shadow: 0 0 12px rgba(70, 190, 255, 0.15);
+    }
+    #life { flex: 1; display: flex; align-items: center; gap: 12px; }
+    #life-bar {
+      flex: 1; height: 3px; background: #2c2c2e; border-radius: 2px; overflow: hidden;
+    }
+    #life-fill {
+      height: 100%; width: 0%; background: #3d7fa6; border-radius: 2px;
+    }
+    #life-time { color: #6e6e73; font-size: 12px; min-width: 44px; text-align: right; }
+
+    #status { color: #6e6e73; font-size: 12px; min-height: 16px; }
+    #status.error { color: #e07b7b; }
+    #about { color: #55575c; font-size: 11px; }
+
+    /* debug panel — development only, deleted for the CYD port */
+    #debug-panel {
+      position: fixed; right: 14px; bottom: 14px; width: 280px;
+      color: #9a9aa0; font-size: 11px; line-height: 1.7;
+    }
+    #debug-panel summary {
+      cursor: pointer; color: #55575c; list-style: none; text-align: right;
+    }
+    #debug-panel summary::after { content: ' ▸'; }
+    #debug-panel[open] summary::after { content: ' ▾'; }
+    #debug-body {
+      margin-top: 8px; padding: 12px 14px;
+      background: #1d1d1f; border: 1px solid #2c2c2e; border-radius: 8px;
+    }
+    #debug-wave { background: #000; border: 1px solid #2c2c2e; border-radius: 4px; display: block; margin-bottom: 8px; }
+    #debug-values div { display: flex; justify-content: space-between; }
+    #debug-values dt { color: #6e6e73; }
+    #debug-values dd { margin: 0; color: #cfcfd4; }
+    #debug-keys { margin: 8px 0 0; color: #6e6e73; }
+    #enclosure-button {
+      font: inherit; color: #9a9aa0; background: #2c2c2e; border: 1px solid #3a3a3c;
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; margin-top: 8px;
+    }
+    #enclosure-button:hover { background: #3a3a3c; }
+  </style>
+</head>
+<body>
+  <canvas id="creature-canvas" width="960" height="720"></canvas>
+
+  <div id="controls">
+    <button id="practice-button">start practice</button>
+    <button id="restart-button" hidden>restart</button>
+    <div id="life">
+      <div id="life-bar"><div id="life-fill"></div></div>
+      <div id="life-time">–</div>
+    </div>
+  </div>
+  <div id="status"></div>
+  <div id="about">a little creature that lives on your practice — play to keep it alive</div>
+
+  <details id="debug-panel">
+    <summary>debug</summary>
+    <div id="debug-body">
+      <canvas id="debug-wave" width="250" height="52"></canvas>
+      <dl id="debug-values">
+        <div><dt>mic</dt><dd id="dbg-mic">idle</dd></div>
+        <div><dt>pitch</dt><dd id="dbg-pitch">–</dd></div>
+        <div><dt>note</dt><dd id="dbg-note">–</dd></div>
+        <div><dt>confidence</dt><dd id="dbg-confidence">–</dd></div>
+        <div><dt>amplitude</dt><dd id="dbg-amplitude">–</dd></div>
+        <div><dt>session</dt><dd id="dbg-session">inactive</dd></div>
+        <div><dt>sustained</dt><dd id="dbg-sustained">0.0s</dd></div>
+        <div><dt>age</dt><dd id="dbg-age">–</dd></div>
+        <div><dt>branch</dt><dd id="dbg-branch">–</dd></div>
+        <div><dt>vitality</dt><dd id="dbg-vitality">–</dd></div>
+        <div><dt>mood</dt><dd id="dbg-mood">–</dd></div>
+        <div><dt>next stage</dt><dd id="dbg-next-stage">–</dd></div>
+        <div><dt>neglect days</dt><dd id="dbg-neglect">–</dd></div>
+        <div><dt>today</dt><dd id="dbg-today">–</dd></div>
+        <div><dt>demeanor</dt><dd id="dbg-demeanor">–</dd></div>
+        <div><dt>conf p50/p90</dt><dd id="dbg-stats">–</dd></div>
+      </dl>
+      <button id="enclosure-button">enclosure preview: off</button>
+      <p id="debug-keys">space = practice · N = skip a day · R = restart<br>E = enclosure preview · D = hide this panel</p>
+    </div>
+  </details>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
