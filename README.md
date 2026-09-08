@@ -3,7 +3,9 @@
 Tamagotchi style creature that lives on real instrument practice, detected via
 microphone pitch tracking. Browser prototype of a future CYD. 
 
-## Run
+**Live:** https://forrest404.github.io/skillotchi/
+
+## Run locally
 
 ```
 cd src
